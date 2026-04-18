@@ -366,31 +366,35 @@
             submitBtn.disabled = true;
             submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
 
-            // 呼叫 GAS 後端的 processFormSubmit 函式
-            google.script.run
-                .withSuccessHandler(function(result) {
-                    if (result.status === 'success') {
-                        toggleBookingModal(false);
-                        showToast('✅ 預約成功！我們將盡快與您聯繫');
-                        document.getElementById('booking-form').reset();
-                    } else {
-                        showToast('❌ 伺服器回報錯誤，請稍後再試');
-                        console.error("GAS Error:", result.message);
-                    }
-                    resetButton(submitBtn, originalBtnText);
-                })
-                .withFailureHandler(function(error) {
-                    showToast('❌ 系統發生錯誤');
-                    console.error("Run Error:", error);
-                    resetButton(submitBtn, originalBtnText);
-                })
-                .processFormSubmit(formData);
-        }
+            try {
+                // 使用 fetch 呼叫 GAS API (GitHub Pages 適用)
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(formData)
+                });
 
-        function resetButton(btn, text) {
-            btn.innerText = text;
-            btn.disabled = false;
-            btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    toggleBookingModal(false);
+                    showToast('✅ 預約成功！我們將盡快與您聯繫');
+                    document.getElementById('booking-form').reset();
+                    // 送出成功後，順便重置時間下拉選單
+                    document.getElementById('booking-time').innerHTML = '<option value="" disabled selected>選擇時段</option>';
+                } else {
+                    showToast('❌ 伺服器回報錯誤，請稍後再試');
+                    console.error("GAS Error:", result.message);
+                }
+            } catch (error) {
+                showToast('❌ 網路連線發生錯誤');
+                console.error("Fetch Error:", error);
+            } finally {
+                // 無論成功或失敗，最後一定會恢復按鈕狀態
+                submitBtn.innerText = originalBtnText;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+            }
         }
 
         function toggleAccordion(index) {
