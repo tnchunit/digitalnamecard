@@ -26,7 +26,6 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
         body { font-family: 'Noto Sans TC', sans-serif; background-color: #F2ECE6; -webkit-tap-highlight-color: transparent; }
-        .header-curve-bg { clip-path: ellipse(120% 100% at 50% 0%); background: linear-gradient(135deg, #2E2A27 0%, #4A443F 100%); }
         .transition-standard { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease; opacity: 0; }
         .accordion-active .accordion-content { max-height: 200px; opacity: 1; }
@@ -43,18 +42,39 @@
     <main id="app" class="w-full max-w-md bg-white md:rounded-3xl shadow-premium relative flex flex-col min-h-screen md:min-h-[844px] overflow-hidden">
         
         <!-- 1. 頂部視覺區 -->
-        <section class="relative h-48 w-full overflow-visible shrink-0">
-            <div class="absolute inset-0 header-curve-bg"></div>
+        <section class="relative h-56 w-full shrink-0 bg-gradient-to-br from-dark-text to-[#1a1816] md:rounded-t-3xl z-0">
+            <!-- 背景光影與點狀紋理 -->
+            <div class="absolute inset-0 md:rounded-t-3xl overflow-hidden pointer-events-none">
+                <!-- 金色左上角柔光 -->
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(182,137,86,0.25),transparent_50%)]"></div>
+                <!-- 科技感點狀網格 -->
+                <div class="absolute inset-0 opacity-[0.05]" style="background-image: radial-gradient(#ffffff 1.5px, transparent 1.5px); background-size: 20px 20px;"></div>
+                
+                <!-- 金色點綴雙層波浪 -->
+                <svg class="absolute bottom-0 w-full h-auto opacity-70" viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0,64L80,58.7C160,53,320,43,480,48C640,53,800,75,960,74.7C1120,75,1280,53,1360,42.7L1440,32L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" fill="#B68956"/>
+                </svg>
+                <!-- 白色主波浪 -->
+                <svg class="absolute -bottom-0.5 w-full h-auto drop-shadow-[0_-5px_15px_rgba(0,0,0,0.05)]" viewBox="0 0 1440 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M0,64L80,69.3C160,75,320,85,480,80C640,75,800,53,960,48C1120,43,1280,53,1360,58.7L1440,64L1440,120L1360,120C1280,120,1120,120,960,120C800,120,640,120,480,120C320,120,160,120,80,120L0,120Z" fill="#FFFFFF"/>
+                </svg>
+            </div>
+
+            <!-- 頭像區塊 -->
             <div class="absolute -bottom-16 left-1/2 -translate-x-1/2 z-20">
                 <div class="relative group">
-                    <img id="profile-img" src="" alt="Profile" class="w-32 h-32 rounded-full border-4 border-white bg-white object-cover shadow-xl cursor-pointer transform transition-standard group-active:scale-95 ring-2 ring-gold-accent/20" onclick="toggleModal(true)">
-                    <div class="absolute inset-0 rounded-full border-2 border-gold-accent opacity-50 scale-105 pointer-events-none"></div>
+                    <!-- 外層動態旋轉虛線環 -->
+                    <div class="absolute -inset-3.5 rounded-full border border-gold-accent/50 animate-[spin_15s_linear_infinite] border-dashed pointer-events-none transition-standard group-hover:border-gold-accent"></div>
+                    <!-- 內層霧面玻璃光暈 -->
+                    <div class="absolute -inset-1.5 rounded-full border border-gold-accent/20 bg-white/30 backdrop-blur-sm pointer-events-none transition-standard group-hover:bg-white/40"></div>
+                    <!-- 實體大頭照 -->
+                    <img id="profile-img" src="" alt="Profile" class="w-32 h-32 rounded-full border-[3px] border-white bg-white object-cover shadow-[0_8px_30px_rgba(0,0,0,0.12)] cursor-pointer transform transition-standard group-hover:scale-105 group-active:scale-95 relative z-10" onclick="toggleModal(true)">
                 </div>
             </div>
         </section>
 
         <!-- 2. 資訊核心區 -->
-        <section class="mt-20 px-8 text-center relative z-10 shrink-0">
+        <section class="mt-24 px-8 text-center relative z-10 shrink-0">
             <h1 id="name-zh" class="text-2xl font-bold text-dark-text tracking-tight h-8 flex items-center justify-center"></h1>
             <p id="name-en" class="text-sm font-medium text-gold-accent uppercase tracking-widest mt-1 h-5 flex items-center justify-center"></p>
             <p id="job-title" class="text-gray-text mt-3 font-medium h-6 flex items-center justify-center"></p>
