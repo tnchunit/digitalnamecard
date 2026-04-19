@@ -1,1 +1,441 @@
+<!-- ==========================================
+// 檔案 2：Index.html (前端網頁)
+// ========================================== -->
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Digital Business Card</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'beige-bg': '#F2ECE6',
+                        'card-white': '#FFFFFF',
+                        'gold-accent': '#B68956',
+                        'dark-text': '#2E2A27',
+                        'gray-text': '#7A726A',
+                    },
+                    borderRadius: { '3xl': '24px' },
+                    boxShadow: { 'premium': '0 20px 50px -12px rgba(46, 42, 39, 0.12)' }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+        body { font-family: 'Noto Sans TC', sans-serif; background-color: #F2ECE6; -webkit-tap-highlight-color: transparent; }
+        .header-curve-bg { clip-path: ellipse(120% 100% at 50% 0%); background: linear-gradient(135deg, #2E2A27 0%, #4A443F 100%); }
+        .transition-standard { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .accordion-content { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease; opacity: 0; }
+        .accordion-active .accordion-content { max-height: 200px; opacity: 1; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+        .toast-animate { animation: fadeInUp 0.4s ease forwards; }
+        .min-h-screen-ios { min-height: -webkit-fill-available; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="flex justify-center items-start md:py-12 min-h-screen-ios">
 
+    <!-- 主容器 -->
+    <main id="app" class="w-full max-w-md bg-white md:rounded-3xl shadow-premium relative flex flex-col min-h-screen md:min-h-[844px] overflow-hidden">
+        
+        <!-- 1. 頂部視覺區 -->
+        <section class="relative h-48 w-full overflow-visible shrink-0">
+            <div class="absolute inset-0 header-curve-bg"></div>
+            <div class="absolute -bottom-16 left-1/2 -translate-x-1/2 z-20">
+                <div class="relative group">
+                    <img id="profile-img" src="" alt="Profile" class="w-32 h-32 rounded-full border-4 border-white bg-white object-cover shadow-xl cursor-pointer transform transition-standard group-active:scale-95 ring-2 ring-gold-accent/20" onclick="toggleModal(true)">
+                    <div class="absolute inset-0 rounded-full border-2 border-gold-accent opacity-50 scale-105 pointer-events-none"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. 資訊核心區 -->
+        <section class="mt-20 px-8 text-center relative z-10 shrink-0">
+            <h1 id="name-zh" class="text-2xl font-bold text-dark-text tracking-tight h-8 flex items-center justify-center"></h1>
+            <p id="name-en" class="text-sm font-medium text-gold-accent uppercase tracking-widest mt-1 h-5 flex items-center justify-center"></p>
+            <p id="job-title" class="text-gray-text mt-3 font-medium h-6 flex items-center justify-center"></p>
+            <p id="slogan" class="text-sm text-gray-text italic mt-2 opacity-80 h-5 flex items-center justify-center"></p>
+            <div class="mt-6 flex justify-center gap-3">
+                <button onclick="toggleModal(true)" class="flex-1 max-w-[140px] px-4 py-2.5 border border-gold-accent text-gold-accent rounded-full text-sm font-medium hover:bg-gold-accent hover:text-white transition-standard">關於我</button>
+                <button onclick="toggleBookingModal(true)" class="flex-1 max-w-[140px] px-4 py-2.5 bg-gold-accent text-white rounded-full text-sm font-medium hover:bg-gold-accent/90 shadow-md transition-standard">預約諮詢</button>
+            </div>
+        </section>
+
+        <!-- 3. 動態社群中心 -->
+        <section id="social-grid" class="mt-8 px-8 grid grid-cols-4 gap-4 shrink-0"></section>
+
+        <!-- 4. 服務展示區 -->
+        <section class="mt-10 px-8 mb-10 shrink-0">
+            <h3 class="text-xs font-bold text-gray-text uppercase tracking-widest mb-4 flex items-center">
+                <span class="w-8 h-px bg-gold-accent/30 mr-3"></span>專業服務項目
+            </h3>
+            <div id="service-accordion" class="space-y-3"></div>
+        </section>
+
+        <!-- 5. QR Code 區 -->
+        <section class="mt-auto px-8 py-8 bg-beige-bg/50 border-t border-beige-bg shrink-0">
+            <div class="bg-white p-6 rounded-2xl shadow-sm flex items-center justify-between cursor-pointer group" onclick="toggleQRLightbox(true)">
+                <div>
+                    <h4 id="qr-title" class="text-sm font-bold text-dark-text"></h4>
+                    <p id="qr-desc" class="text-xs text-gray-text mt-1"></p>
+                </div>
+                <div class="w-16 h-16 bg-beige-bg rounded-lg p-1 group-hover:scale-105 transition-standard" id="qr-container">
+                    <svg viewBox="0 0 100 100" class="w-full h-full fill-dark-text opacity-20"><path d="M10 10h30v30h-30zM15 15h20v20h-20zM60 10h30v30h-30zM65 15h20v20h-20zM10 60h30v30h-30zM15 65h20v20h-20zM50 50h10v10h-10zM70 70h20v20h-20z" /></svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6. 底部行動區 -->
+        <footer class="p-6 pt-0 bg-beige-bg/50 shrink-0">
+            <button onclick="copyShareLink()" class="w-full bg-dark-text text-white py-4 rounded-2xl font-bold tracking-wide shadow-lg hover:bg-black transition-standard active:scale-[0.98] flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>分享數位名片
+            </button>
+        </footer>
+    </main>
+
+    <!-- 彈窗 - 關於我 -->
+    <div id="modal-about" class="fixed inset-0 z-50 flex items-center justify-center p-6 bg-dark-text/40 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-8 shadow-2xl transform translate-y-4 transition-transform duration-300">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-dark-text">關於我</h3>
+                <button onclick="toggleModal(false)" class="text-gray-text hover:text-dark-text"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <p id="about-desc" class="text-gray-text leading-relaxed text-sm"></p>
+            <button onclick="toggleModal(false)" class="w-full mt-8 bg-gold-accent text-white py-3 rounded-xl font-medium">了解</button>
+        </div>
+    </div>
+
+    <!-- 彈窗 - 預約諮詢表單 -->
+    <div id="modal-booking" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-dark-text/60 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full max-w-sm rounded-3xl p-6 shadow-2xl transform translate-y-4 transition-transform duration-300 max-h-[90vh] overflow-y-auto hide-scrollbar">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-dark-text flex items-center gap-2"><svg class="w-5 h-5 text-gold-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>預約諮詢</h3>
+                <button onclick="toggleBookingModal(false)" class="text-gray-text hover:text-dark-text transition-standard"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
+            </div>
+            <form id="booking-form" onsubmit="submitBooking(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-text mb-1 ml-1">姓名 <span class="text-red-400">*</span></label>
+                    <input id="booking-name" type="text" required placeholder="請輸入您的姓名" class="w-full px-4 py-3 bg-beige-bg/30 border border-beige-bg rounded-xl focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent text-sm text-dark-text transition-standard">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-text mb-1 ml-1">電子郵件 <span class="text-red-400">*</span></label>
+                    <input id="booking-email" type="email" required placeholder="example@email.com" class="w-full px-4 py-3 bg-beige-bg/30 border border-beige-bg rounded-xl focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent text-sm text-dark-text transition-standard">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-text mb-1 ml-1">聯絡電話 <span class="text-red-400">*</span></label>
+                    <input id="booking-phone" type="tel" required placeholder="09xx-xxx-xxx" class="w-full px-4 py-3 bg-beige-bg/30 border border-beige-bg rounded-xl focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent text-sm text-dark-text transition-standard">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-text mb-1 ml-1">期望預約時間 <span class="text-red-400">*</span></label>
+                    <div class="flex gap-2">
+                        <input id="booking-date" type="date" required class="w-1/2 px-4 py-3 bg-beige-bg/30 border border-beige-bg rounded-xl focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent text-sm text-dark-text transition-standard">
+                        <select id="booking-time" required class="w-1/2 px-4 py-3 bg-beige-bg/30 border border-beige-bg rounded-xl focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent text-sm text-dark-text transition-standard">
+                            <option value="" disabled selected>選擇時段</option>
+                            <option value="09:00">09:00</option>
+                            <option value="10:00">10:00</option>
+                            <option value="11:00">11:00</option>
+                            <option value="13:00">13:00</option>
+                            <option value="14:00">14:00</option>
+                            <option value="15:00">15:00</option>
+                            <option value="16:00">16:00</option>
+                            <option value="17:00">17:00</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-text mb-1 ml-1">諮詢內容 <span class="text-red-400">*</span></label>
+                    <textarea id="booking-message" required rows="3" placeholder="請簡述您想諮詢的項目或問題..." class="w-full px-4 py-3 bg-beige-bg/30 border border-beige-bg rounded-xl focus:outline-none focus:border-gold-accent focus:ring-1 focus:ring-gold-accent text-sm text-dark-text resize-none transition-standard"></textarea>
+                </div>
+                <div class="pt-2">
+                    <button id="booking-submit-btn" type="submit" class="w-full bg-dark-text text-white py-3.5 rounded-xl font-bold tracking-wide hover:bg-black transition-standard active:scale-[0.98]">送出預約表單</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 彈窗 - QR Code -->
+    <div id="modal-qr" class="fixed inset-0 z-50 flex items-center justify-center p-6 bg-dark-text/80 backdrop-blur-md hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white p-8 rounded-3xl text-center max-w-xs transform scale-90 transition-transform duration-300">
+            <h3 class="font-bold mb-4">掃描行動條碼</h3>
+            <div id="qr-large" class="bg-beige-bg p-4 rounded-2xl aspect-square flex items-center justify-center"></div>
+            <button onclick="toggleQRLightbox(false)" class="mt-6 text-gray-text font-medium text-sm">點擊關閉</button>
+        </div>
+    </div>
+
+    <!-- 提示訊息 -->
+    <div id="toast" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] bg-dark-text text-white px-6 py-3 rounded-full text-sm font-medium shadow-2xl hidden toast-animate text-center whitespace-nowrap"><span id="toast-message"></span></div>
+
+    <script>
+        // 👇👇👇 請在這裡貼上您部署 Google Apps Script 後取得的網頁應用程式 URL
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbznD_5biNZsVleEMwFRv9pUkZ3_93FWHHKG9kcttDJOwRlepD380MqEYSqyBFAqmzQb/exec";
+        // 👆👆👆
+
+        const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRwoKwVBors4VVCv-cTJIyMjotkJ6pJHgUdDYGPR02b_wiIn6I1uMjTC0FvhZhpHZsCY9alOe2boT70/pub?gid=1853070506&single=true&output=csv";
+        const CONFIG = { profile: {}, socials: [{},{},{},{}], services: [{},{},{}], qr: {} };
+        const state = { activeAccordionIndex: null };
+
+        async function fetchCSVData() {
+            try {
+                // 在網址後面加上時間戳記，強迫瀏覽器抓取最新資料 (Cache Busting)
+                const noCacheUrl = CSV_URL + "&t=" + new Date().getTime();
+                const response = await fetch(noCacheUrl);
+                const data = await response.text();
+                const rows = data.split('\n').map(row => {
+                    const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                    return cols.map(col => col.replace(/^"|"$/g, '').replace(/""/g, '"'));
+                });
+                rows.forEach(row => {
+                    const label = row[0]?.trim();
+                    const value = row[1]?.trim();
+                    if (!label || !value) return;
+                    switch (label) {
+                        case "個人大頭照網址": CONFIG.profile.avatar = value; break;
+                        case "中文姓名": CONFIG.profile.nameZh = value; break;
+                        case "英文姓名": CONFIG.profile.nameEn = value; break;
+                        case "專業職稱": CONFIG.profile.title = value; break;
+                        case "品牌標語 (Slogan)": CONFIG.profile.slogan = value; break;
+                        case "關於我描述": CONFIG.profile.description = value; break;
+                        case "Instagram 連結": CONFIG.socials[0].link = value; CONFIG.socials[0].id = 'IG'; CONFIG.socials[0].svg = '<path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>'; break;
+                        // 更新 LINE 的 SVG 路徑，使用更標準的 LINE icon 畫法
+                        case "LINE 連結": CONFIG.socials[1].link = value; CONFIG.socials[1].id = 'LINE'; CONFIG.socials[1].svg = '<path d="M24 10.304c0-5.369-5.383-9.738-12-9.738-6.616 0-12 4.369-12 9.738 0 4.814 4.269 8.846 10.036 9.608.391.084.922.258 1.057.592.122.303.079.778.039 1.085l-.171 1.027c-.053.303-.242 1.186 1.039.647 1.281-.54 6.911-4.069 9.428-6.967 1.739-1.907 2.572-3.843 2.572-5.992zm-14.908 1.637h-2.148c-.244 0-.441-.197-.441-.442v-4.103c0-.245.197-.442.441-.442h2.148c.244 0 .441.197.441.442s-.197.442-.441.442h-1.707v1.171h1.707c.244 0 .441.197.441.442s-.197.442-.441.442h-1.707v1.163h1.707c.244 0 .441.197.441.442s-.197.442-.441.442zm5.021 0h-1.026c-.244 0-.441-.197-.441-.442v-4.103c0-.245.197-.442.441-.442h1.026c.244 0 .441.197.441.442v4.103c0 .245-.197.442-.441.442zm4.331-1.637l-2.029-2.433v2.433c0 .245-.197.442-.441.442-.244 0-.441-.197-.441-.442v-4.103c0-.245.197-.442.441-.442.222 0 .416.166.438.388l2.027 2.431v-2.377c0-.245.197-.442.441-.442.244 0 .441.197.441.442v4.103c0 .245-.197.442-.441.442-.222 0-.416-.166-.438-.388zm3.504-1.6h-1.708v-1.171h1.708c.244 0 .441-.197.441-.442s-.197-.442-.441-.442h-2.149c-.244 0-.441.197-.441.442v4.103c0 .245.197.442.441.442h2.149c.244 0 .441-.197.441-.442s-.197-.442-.441-.442h-1.708v-1.163h1.708c.244 0 .441-.197.441-.442s-.197-.442-.441-.442z"/>'; break;
+                        case "Email 連結": CONFIG.socials[2].link = value; CONFIG.socials[2].id = 'Email'; CONFIG.socials[2].svg = '<path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>'; break;
+                        case "個人/公司官網": CONFIG.socials[3].link = value; CONFIG.socials[3].id = 'Web'; CONFIG.socials[3].svg = '<path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm7 6h-3c-.3-1.3-.8-2.6-1.5-3.8A8 8 0 0 1 19 8zM12 4c.7 1.2 1.2 2.5 1.5 4h-3c.3-1.5.8-2.8 1.5-4zM4.3 14a8 8 0 0 1 0-4h3.4a12 12 0 0 0 0 4zm.8-6a8 8 0 0 1 4.5-3.8C8.8 5.4 8.3 6.7 8 8zm4.5 8c.3 1.3.8 2.6 1.4 3.8a8 8 0 0 1-4.4-3.8zm3.4 3.8c-.7-1.2-1.2-2.5-1.5-3.8h3c-.3 1.5-.8 2.8-1.5 4zm1.9-5.8h-3.8v-4h3.8zm.6 5.8c.7-1.2 1.2-2.5 1.5-3.8h3.4a8 8 0 0 1-4.9 3.8zM16.3 14a12 12 0 0 0 0-4h3.4a8 8 0 0 1 0 4zM19 8h-3c-.3-1.3-.8-2.6-1.5-3.8a8 8 0 0 1 4.5 3.8z"/>'; break;
+                        case "服務項目(一) 標題": CONFIG.services[0].title = value; CONFIG.services[0].icon = "M12 2L2 7l10 5 10-5-10-5z"; break;
+                        case "服務項目(一) 內容": CONFIG.services[0].content = value; break;
+                        case "服務項目(二) 標題": CONFIG.services[1].title = value; CONFIG.services[1].icon = "M10 20l4-16m4 4l4 4"; break;
+                        case "服務項目(二) 內容": CONFIG.services[1].content = value; break;
+                        case "服務項目(三) 標題": CONFIG.services[2].title = value; CONFIG.services[2].icon = "M17 20h5v-2a3 3 0 00-5.356-1.857"; break;
+                        case "服務項目(三) 內容": CONFIG.services[2].content = value; break;
+                        case "QR Code 標題": CONFIG.qr.title = value; break;
+                        case "QR Code 說明": CONFIG.qr.desc = value; break;
+                        case "QR Code 圖像資料": CONFIG.qr.placeholder = value; break;
+                    }
+                });
+            } catch (error) { console.error("Error loading CSV:", error); }
+        }
+
+        async function init() {
+            await fetchCSVData();
+            document.getElementById('profile-img').src = CONFIG.profile.avatar;
+            document.getElementById('name-zh').innerText = CONFIG.profile.nameZh;
+            document.getElementById('name-en').innerText = CONFIG.profile.nameEn;
+            document.getElementById('job-title').innerText = CONFIG.profile.title;
+            document.getElementById('slogan').innerText = CONFIG.profile.slogan;
+            document.getElementById('about-desc').innerText = CONFIG.profile.description;
+            document.getElementById('qr-title').innerText = CONFIG.qr.title;
+            document.getElementById('qr-desc').innerText = CONFIG.qr.desc;
+            renderSocials();
+            renderServices();
+
+            // 綁定日期選擇器事件：當日期改變時，自動去後端查詢已預約時段
+            document.getElementById('booking-date').addEventListener('change', checkAvailableTimes);
+        }
+
+        // ==========================================
+        // 檢查該日期已預約的時段並將選項停用
+        // ==========================================
+        async function checkAvailableTimes() {
+            const dateInput = document.getElementById('booking-date');
+            const timeSelect = document.getElementById('booking-time');
+            const date = dateInput.value;
+
+            if (!date || GAS_URL.includes("請將這裡替換")) return;
+
+            // 每次選新日期時，先重置所有時間選項為「可選」狀態
+            Array.from(timeSelect.options).forEach((opt, index) => {
+                if (index > 0) {
+                    opt.disabled = false;
+                    opt.innerText = opt.value;
+                }
+            });
+            timeSelect.value = "";
+
+            timeSelect.options[0].innerText = "查詢空檔中...";
+            timeSelect.disabled = true;
+
+            try {
+                // 透過 GET 請求，向 GAS 查詢這天有哪些時段被訂走了
+                const response = await fetch(`${GAS_URL}?action=getBookedTimes&date=${date}`);
+                const result = await response.json();
+                
+                if (result.status === 'success' && result.bookedTimes) {
+                    // 將已經預約的時段設為 disabled (無法點選)
+                    Array.from(timeSelect.options).forEach((opt, index) => {
+                        if (index > 0 && result.bookedTimes.includes(opt.value)) {
+                            opt.disabled = true;
+                            opt.innerText = `${opt.value} (已預約)`;
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error("無法取得預約時段:", error);
+            } finally {
+                timeSelect.options[0].innerText = "選擇時段";
+                timeSelect.disabled = false;
+            }
+        }
+
+        function renderSocials() {
+            const container = document.getElementById('social-grid');
+            container.innerHTML = '';
+            CONFIG.socials.forEach(item => {
+                if(!item.link) return;
+                const btn = document.createElement('a');
+                btn.href = item.link;
+                btn.target = "_blank";
+                btn.className = "aspect-square flex flex-col items-center justify-center bg-beige-bg rounded-2xl group transition-standard hover:bg-gold-accent shadow-sm active:scale-90";
+                btn.innerHTML = `<svg class="w-6 h-6 fill-dark-text group-hover:fill-white transition-standard" viewBox="0 0 24 24">${item.svg}</svg><span class="text-[10px] mt-2 font-bold text-gray-text group-hover:text-white transition-standard">${item.id}</span>`;
+                container.appendChild(btn);
+            });
+        }
+
+        function renderServices() {
+            const container = document.getElementById('service-accordion');
+            container.innerHTML = '';
+            CONFIG.services.forEach((service, index) => {
+                if(!service.title) return;
+                const div = document.createElement('div');
+                div.className = "border border-beige-bg rounded-2xl bg-white overflow-hidden";
+                div.id = `accordion-${index}`;
+                div.innerHTML = `<button onclick="toggleAccordion(${index})" class="w-full px-5 py-4 flex items-center justify-between text-left transition-standard hover:bg-beige-bg/30"><div class="flex items-center gap-3"><div class="p-2 bg-beige-bg rounded-lg text-gold-accent"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="${service.icon}"></path></svg></div><span class="font-bold text-dark-text text-sm">${service.title}</span></div><svg id="arrow-${index}" class="w-4 h-4 text-gray-text transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg></button><div class="accordion-content"><div class="px-5 pb-5 pt-1 text-sm text-gray-text leading-relaxed">${service.content}</div></div>`;
+                container.appendChild(div);
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-message').innerText = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        function toggleModal(isOpen) {
+            const modal = document.getElementById('modal-about');
+            const content = modal.querySelector('div');
+            if (isOpen) {
+                modal.classList.remove('hidden'); document.body.classList.add('overflow-hidden');
+                setTimeout(() => { modal.classList.add('opacity-100'); content.classList.remove('translate-y-4'); content.classList.add('translate-y-0'); }, 10);
+            } else {
+                modal.classList.remove('opacity-100'); content.classList.add('translate-y-4');
+                setTimeout(() => { modal.classList.add('hidden'); document.body.classList.remove('overflow-hidden'); }, 300);
+            }
+        }
+
+        function toggleBookingModal(isOpen) {
+            const modal = document.getElementById('modal-booking');
+            const content = modal.querySelector('div');
+            if (isOpen) {
+                modal.classList.remove('hidden'); document.body.classList.add('overflow-hidden');
+                setTimeout(() => { modal.classList.add('opacity-100'); content.classList.remove('translate-y-4'); content.classList.add('translate-y-0'); }, 10);
+            } else {
+                modal.classList.remove('opacity-100'); content.classList.add('translate-y-4');
+                setTimeout(() => { modal.classList.add('hidden'); document.body.classList.remove('overflow-hidden'); }, 300);
+            }
+        }
+
+        // ==========================================
+        // 從 GitHub Pages 用 Fetch 呼叫 GAS API
+        // ==========================================
+        async function submitBooking(event) {
+            event.preventDefault();
+
+            if (GAS_URL.includes("請將這裡替換")) {
+                showToast('⚠️ 請先設定 GAS API 網址');
+                return;
+            }
+
+            const formData = {
+                name: document.getElementById('booking-name').value,
+                email: document.getElementById('booking-email').value,
+                phone: document.getElementById('booking-phone').value,
+                date: document.getElementById('booking-date').value,
+                time: document.getElementById('booking-time').value,
+                message: document.getElementById('booking-message').value
+            };
+
+            const submitBtn = document.getElementById('booking-submit-btn');
+            const originalBtnText = submitBtn.innerText;
+            submitBtn.innerText = '處理中...';
+            submitBtn.disabled = true;
+            submitBtn.classList.add('opacity-70', 'cursor-not-allowed');
+
+            try {
+                // 使用 fetch 呼叫 GAS API (GitHub Pages 適用)
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'success') {
+                    toggleBookingModal(false);
+                    showToast('✅ 預約成功！我們將盡快與您聯繫');
+                    document.getElementById('booking-form').reset();
+                    // 送出成功後，順便重置時間下拉選單
+                    document.getElementById('booking-time').innerHTML = '<option value="" disabled selected>選擇時段</option>';
+                } else {
+                    showToast('❌ 伺服器回報錯誤，請稍後再試');
+                    console.error("GAS Error:", result.message);
+                }
+            } catch (error) {
+                showToast('❌ 網路連線發生錯誤');
+                console.error("Fetch Error:", error);
+            } finally {
+                // 無論成功或失敗，最後一定會恢復按鈕狀態
+                submitBtn.innerText = originalBtnText;
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+            }
+        }
+
+        function toggleAccordion(index) {
+            const target = document.getElementById(`accordion-${index}`);
+            const arrow = document.getElementById(`arrow-${index}`);
+            if (state.activeAccordionIndex === index) {
+                target.classList.remove('accordion-active'); arrow.classList.remove('rotate-180'); state.activeAccordionIndex = null;
+            } else {
+                if (state.activeAccordionIndex !== null) {
+                    const prev = document.getElementById(`accordion-${state.activeAccordionIndex}`);
+                    if (prev) prev.classList.remove('accordion-active');
+                    const prevArrow = document.getElementById(`arrow-${state.activeAccordionIndex}`);
+                    if (prevArrow) prevArrow.classList.remove('rotate-180');
+                }
+                target.classList.add('accordion-active'); arrow.classList.add('rotate-180'); state.activeAccordionIndex = index;
+            }
+        }
+
+        function toggleQRLightbox(isOpen) {
+            const modal = document.getElementById('modal-qr');
+            const content = modal.querySelector('div');
+            const largeQR = document.getElementById('qr-large');
+            if (isOpen) {
+                largeQR.innerHTML = `<svg viewBox="0 0 100 100" class="w-full h-full fill-dark-text">${CONFIG.qr.placeholder.includes('path') ? CONFIG.qr.placeholder : '<path d="' + CONFIG.qr.placeholder + '"/>'}</svg>`;
+                modal.classList.remove('hidden');
+                setTimeout(() => { modal.classList.add('opacity-100'); content.classList.remove('scale-90'); content.classList.add('scale-100'); }, 10);
+            } else {
+                modal.classList.remove('opacity-100'); content.classList.add('scale-90');
+                setTimeout(() => modal.classList.add('hidden'), 300);
+            }
+        }
+
+        function copyShareLink() {
+            const tempInput = document.createElement("input");
+            tempInput.value = window.location.href;
+            document.body.appendChild(tempInput);
+            tempInput.select(); document.execCommand("copy"); document.body.removeChild(tempInput);
+            showToast('🔗 連結已複製到剪貼簿');
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
